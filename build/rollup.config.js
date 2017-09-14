@@ -13,7 +13,7 @@ const root = path.resolve(__dirname, './');
 
 module.exports = {
     input: 'src/index.js',
-    name: 'projectName',
+    name: 'strokeIdentify',
     sourcemap: true,
     output: {
         file: 'dist/bundle.js',
@@ -37,7 +37,9 @@ module.exports = {
             ],
         }),
         alias({
-            ASSETS: path.resolve(__dirname, '../assets')
+            ASSETS: path.resolve(__dirname, '../assets'),
+            UTIL: path.resolve(__dirname, '../src/util'),
+            CANVAS: path.resolve(__dirname, '../src/canvas')
         })
     ]
 // output format - 'amd', 'cjs', 'es6', 'iife', 'umd'
