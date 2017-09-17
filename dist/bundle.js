@@ -33,14 +33,22 @@ var bodyLock = function () {
     return fixedBody;
 }();
 
+var abs = function abs(num) {
+    return num >= 0 ? num : -num;
+};
+
 /**
  * @description 图案识别算法
  */
-
-var MIN_MOVECONTENT = 20;
+var MIN_MOVECONTENT = 50;
 
 var _recognize = (function (list) {
-    return simplySingle(list);
+    var singles = simplySingle(list);
+    singles = limitDirections(singles);
+    singles = simplyDirection(singles);
+    console.log(singles);
+
+    return singles;
 });
 
 // 信号去噪 算法来自 http://haojian.github.io/gesture_recognition/
@@ -64,6 +72,61 @@ var simplySingle = function simplySingle(list) {
     }
 
     return simplyList;
+};
+
+var limitDirections = function limitDirections(list) {
+    var dirList = [];
+    var lastX = list[0].x;
+    var lastY = list[0].y;
+
+    for (var i = 1; i < list.length; i++) {
+        var dx = list[i].x - lastX;
+        var dy = list[i].y - lastY;
+
+        if (abs(dx) > abs(dy)) {
+            dy = 0;
+        } else {
+            dx = 0;
+        }
+
+        dirList.push({ x: dx, y: dy });
+        lastX = list[i].x;
+        lastY = list[i].y;
+    }
+
+    return dirList;
+};
+
+var simplyDirection = function simplyDirection(list) {
+    var dirList = [];
+    var lastX = list[0].x;
+    var lastY = list[1].y;
+    var similarDir = function similarDir(a, b) {
+        return !!(a * b > 0);
+    };
+
+    for (var i = 1; i < list.length; i++) {
+        var joined = false;
+
+        if (similarDir(lastX, list[i].x)) {
+            joined = true;
+            lastX += list[i].x;
+        }
+
+        if (similarDir(lastY, list[i].y)) {
+            joined = true;
+            lastY += list[i].y;
+        }
+
+        if (!joined || i === list.length - 1) {
+            dirList.push({ x: lastX, y: lastY });
+
+            lastX = list[i].x;
+            lastY = list[i].y;
+        }
+    }
+
+    return dirList;
 };
 
 var classCallCheck = function (instance, Constructor) {
@@ -208,8 +271,6 @@ var Canvas = function () {
             clearZone.call(this);
 
             var simplyList = _recognize(this.zoneList);
-            drawLineList.call(this, simplyList);
-            console.log(simplyList);
         }
     }]);
     return Canvas;
@@ -248,36 +309,6 @@ var clearZone = function clearZone() {
 
 var addZoneList = function addZoneList(position) {
     this.zoneList.push(position);
-};
-
-var drawLine = function drawLine(oX, oY) {
-    var _this2 = this;
-
-    var lastX = oX;
-    var lastY = oY;
-
-    return function (x, y) {
-        _this2.ctx.save();
-        _this2.ctx.beginPath();
-        _this2.ctx.strokeStyle = 'green';
-        _this2.ctx.lineWidth = 4;
-        _this2.ctx.lineJoin = 'round';
-        _this2.ctx.moveTo(lastX, lastY);
-        _this2.ctx.lineTo(x, y);
-        _this2.ctx.closePath();
-        _this2.ctx.stroke();
-        _this2.ctx.restore();
-        lastX = x;
-        lastY = y;
-    };
-};
-
-var drawLineList = function drawLineList(list) {
-    var draw = drawLine.call(this, list[0].x, list[0].y);
-
-    for (var i = 1; i < list.length; i++) {
-        draw(list[i].x, list[i].y);
-    }
 };
 
 var _init = (function (canvas, ctx, options) {

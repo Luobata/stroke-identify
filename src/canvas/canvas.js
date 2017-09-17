@@ -121,8 +121,6 @@ export default class Canvas {
         clearZone.call(this);
 
         let simplyList = recognize(this.zoneList);
-        drawLineList.call(this, simplyList);
-        console.log(simplyList);
     };
 };
 
