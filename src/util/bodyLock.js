@@ -1,7 +1,7 @@
 export const bodyLock = (function () {
     var originScrollTop, originCssText, win = window, doc = win.document;
     var forbidFunc = function (e) {
-        e.preventDefault();
+        //e.preventDefault();
         return false;
     };
     var fixedBody = {

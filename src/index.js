@@ -11,6 +11,12 @@ const identify = {
             ctx = canvas.getContext('2d');
             global_canvas = init(canvas, ctx, options);
         }
+    },
+    recognize () {
+        global_canvas.recognize();
+    },
+    clear () {
+        global_canvas.clear();
     }
 };
 

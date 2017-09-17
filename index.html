@@ -46,11 +46,27 @@
             margin: 20px auto;
             padding: 10px;
         }
+        .recognize,
+        .clear {
+            width: 50%;
+            height: 40px;
+            position: fixed;
+            bottom: 0;
+            text-align: center;
+        }
+        .recognize {
+            left: 0;
+        }
+        .clear {
+            right: 0;
+        }
     </style>
 </head>
 <body>
 
     <canvas id="stroke-identify" width="300" height="200"></canvas>
+    <div class="recognize">recognize</div>
+    <div class="clear">clear</div>
 
 
     <script type="text/javascript" src="./dist/bundle.js"></script>
@@ -58,6 +74,14 @@
         strokeIdentify.init('stroke-identify', {
             width: document.body.clientWidth,
             height: document.body.clientHeight
+        });
+        var btn = document.getElementsByClassName('recognize');
+        var btn2 = document.getElementsByClassName('clear');
+        btn[0].addEventListener('touchstart', function () {
+            strokeIdentify.recognize();
+        });
+        btn2[0].addEventListener('touchstart', function () {
+            strokeIdentify.clear();
         });
     </script>
 </body>

@@ -10,7 +10,7 @@ var bodyLock = function () {
         win = window,
         doc = win.document;
     var forbidFunc = function forbidFunc(e) {
-        e.preventDefault();
+        //e.preventDefault();
         return false;
     };
     var fixedBody = {
@@ -69,6 +69,12 @@ var Canvas = function () {
         this.height = height;
         this.drawing = false;
         this.rate = parseInt(document.body.clientWidth / 320, 10) * 2;
+        this.zone = {
+            left: null,
+            right: null,
+            top: null,
+            bottom: null
+        };
 
         bodyLock.lock();
         this.init();
@@ -91,12 +97,16 @@ var Canvas = function () {
 
             this.canvas.addEventListener('touchstart', function (e) {
                 _this.drawing = true;
-                _this.draw(_this.getPosition(e.touches[0].clientX, e.touches[0].clientY), false);
+                var position = _this.getPosition(e.touches[0].clientX, e.touches[0].clientY);
+                changeZone.call(_this, position);
+                _this.draw(position, false);
             });
 
             this.canvas.addEventListener('touchmove', function (e) {
                 if (_this.drawing) {
-                    _this.draw(_this.getPosition(e.touches[0].clientX, e.touches[0].clientY), true);
+                    var position = _this.getPosition(e.touches[0].clientX, e.touches[0].clientY);
+                    changeZone.call(_this, position);
+                    _this.draw(position, true);
                 }
                 e.preventDefault();
             });
@@ -137,9 +147,65 @@ var Canvas = function () {
                 y: (y - box.top * (this.canvas.height / box.height)) * this.rate
             };
         }
+    }, {
+        key: 'getDrawZone',
+        value: function getDrawZone() {}
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.canvas.height = this.canvas.height;
+        }
+    }, {
+        key: 'recognize',
+        value: function recognize() {
+            console.log(this.zone);
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = 'blue';
+            this.ctx.lineWidth = 5;
+            this.ctx.lineJoin = 'round';
+            this.ctx.moveTo(this.zone.left, this.zone.top);
+            this.ctx.lineTo(this.zone.right, this.zone.top);
+            this.ctx.lineTo(this.zone.right, this.zone.bottom);
+            this.ctx.lineTo(this.zone.left, this.zone.bottom);
+            this.ctx.closePath();
+            this.ctx.stroke();
+            this.ctx.restore();
+            clearZone.call(this);
+        }
     }]);
     return Canvas;
 }();
+
+
+
+// 私有方法 call方式调用 保证有this 所有不能使用箭头函数
+var changeZone = function changeZone(position) {
+    if (!this.zone.left || position.x < this.zone.left) {
+        this.zone.left = position.x;
+    }
+
+    if (!this.zone.right || position.x > this.zone.right) {
+        this.zone.right = position.x;
+    }
+
+    if (!this.zone.top || position.y > this.zone.top) {
+        this.zone.top = position.y;
+    }
+
+    if (!this.zone.bottom || position.y < this.zone.bottom) {
+        this.zone.bottom = position.y;
+    }
+};
+
+var clearZone = function clearZone() {
+    this.zone = {
+        left: null,
+        right: null,
+        top: null,
+        bottom: null
+    };
+};
 
 var _init = (function (canvas, ctx, options) {
     return new Canvas(canvas, ctx, options);
@@ -156,6 +222,12 @@ var identify = {
             ctx = canvas.getContext('2d');
             global_canvas = _init(canvas, ctx, options);
         }
+    },
+    recognize: function recognize() {
+        global_canvas.recognize();
+    },
+    clear: function clear() {
+        global_canvas.clear();
     }
 };
 
