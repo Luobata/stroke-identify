@@ -1,4 +1,5 @@
 import { bodyLock } from 'UTIL/index.js';
+import recognize from 'CANVAS/recognize.js';
 
 export default class Canvas {
 
@@ -9,6 +10,7 @@ export default class Canvas {
     lastX: number;
     lastY: number;
     zone: object;
+    zoneList: Array;
 
     constructor (canvas, ctx, 
         {
@@ -28,6 +30,7 @@ export default class Canvas {
             top: null,
             bottom: null
         };
+        this.zoneList = [];
 
         bodyLock.lock();
         this.init();
@@ -72,7 +75,7 @@ export default class Canvas {
             this.ctx.save();
             this.ctx.beginPath();
             this.ctx.strokeStyle = 'red';
-            this.ctx.lineWidth = 10;
+            this.ctx.lineWidth = 5;
             this.ctx.lineJoin = 'round';
             this.ctx.moveTo(this.lastX, this.lastY);
             this.ctx.lineTo(x, y);
@@ -102,20 +105,24 @@ export default class Canvas {
     };
 
     recognize () {
-        console.log(this.zone);
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = 'blue';
-        this.ctx.lineWidth = 5;
-        this.ctx.lineJoin = 'round';
-        this.ctx.moveTo(this.zone.left, this.zone.top);
-        this.ctx.lineTo(this.zone.right, this.zone.top);
-        this.ctx.lineTo(this.zone.right, this.zone.bottom);
-        this.ctx.lineTo(this.zone.left, this.zone.bottom);
-        this.ctx.closePath();
-        this.ctx.stroke();
-        this.ctx.restore();
+        console.log(this.zoneList);
+        //this.ctx.save();
+        //this.ctx.beginPath();
+        //this.ctx.strokeStyle = 'blue';
+        //this.ctx.lineWidth = 5;
+        //this.ctx.lineJoin = 'round';
+        //this.ctx.moveTo(this.zone.left, this.zone.top);
+        //this.ctx.lineTo(this.zone.right, this.zone.top);
+        //this.ctx.lineTo(this.zone.right, this.zone.bottom);
+        //this.ctx.lineTo(this.zone.left, this.zone.bottom);
+        //this.ctx.closePath();
+        //this.ctx.stroke();
+        //this.ctx.restore();
         clearZone.call(this);
+
+        let simplyList = recognize(this.zoneList);
+        drawLineList.call(this, simplyList);
+        console.log(simplyList);
     };
 };
 
@@ -136,6 +143,7 @@ const changeZone = function (position) {
     if (!this.zone.bottom || position.y < this.zone.bottom) {
         this.zone.bottom = position.y;
     }
+    addZoneList.call(this, position);
 };
 
 const clearZone = function () {
@@ -145,4 +153,37 @@ const clearZone = function () {
         top: null,
         bottom: null
     };
+};
+
+const addZoneList = function (position) {
+    this.zoneList.push(position);
+};
+
+const drawLine = function (oX, oY) {
+    let lastX = oX;
+    let lastY = oY;
+
+    return (x, y) => {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'green';
+        this.ctx.lineWidth = 4;
+        this.ctx.lineJoin = 'round';
+        this.ctx.moveTo(lastX, lastY);
+        this.ctx.lineTo(x, y);
+        this.ctx.closePath();
+        this.ctx.stroke();
+        this.ctx.restore();
+        lastX = x;
+        lastY = y;
+    };
+};
+
+const drawLineList = function (list) {
+    let draw = drawLine.call(this, list[0].x, list[0].y);
+
+    for (let i = 1; i < list.length; i++) {
+        draw(list[i].x, list[i].y);
+    }
+
 };

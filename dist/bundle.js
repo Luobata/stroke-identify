@@ -33,6 +33,39 @@ var bodyLock = function () {
     return fixedBody;
 }();
 
+/**
+ * @description 图案识别算法
+ */
+
+var MIN_MOVECONTENT = 20;
+
+var _recognize = (function (list) {
+    return simplySingle(list);
+});
+
+// 信号去噪 算法来自 http://haojian.github.io/gesture_recognition/
+var simplySingle = function simplySingle(list) {
+    if (list.length <= 1) return list;
+
+    var simplyList = [list[0]];
+    var x = simplyList[0].x;
+    var y = simplyList[0].y;
+
+    for (var i = 1; i < list.length; i++) {
+        var item = list[i];
+        var dx = item.x - x;
+        var dy = item.y - y;
+
+        if (dx * dx + dy * dy > MIN_MOVECONTENT) {
+            simplyList.push(item);
+            x = item.x;
+            y = item.y;
+        }
+    }
+
+    return simplyList;
+};
+
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -75,6 +108,7 @@ var Canvas = function () {
             top: null,
             bottom: null
         };
+        this.zoneList = [];
 
         bodyLock.lock();
         this.init();
@@ -125,7 +159,7 @@ var Canvas = function () {
                 this.ctx.save();
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = 'red';
-                this.ctx.lineWidth = 10;
+                this.ctx.lineWidth = 5;
                 this.ctx.lineJoin = 'round';
                 this.ctx.moveTo(this.lastX, this.lastY);
                 this.ctx.lineTo(x, y);
@@ -158,20 +192,24 @@ var Canvas = function () {
     }, {
         key: 'recognize',
         value: function recognize() {
-            console.log(this.zone);
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = 'blue';
-            this.ctx.lineWidth = 5;
-            this.ctx.lineJoin = 'round';
-            this.ctx.moveTo(this.zone.left, this.zone.top);
-            this.ctx.lineTo(this.zone.right, this.zone.top);
-            this.ctx.lineTo(this.zone.right, this.zone.bottom);
-            this.ctx.lineTo(this.zone.left, this.zone.bottom);
-            this.ctx.closePath();
-            this.ctx.stroke();
-            this.ctx.restore();
+            console.log(this.zoneList);
+            //this.ctx.save();
+            //this.ctx.beginPath();
+            //this.ctx.strokeStyle = 'blue';
+            //this.ctx.lineWidth = 5;
+            //this.ctx.lineJoin = 'round';
+            //this.ctx.moveTo(this.zone.left, this.zone.top);
+            //this.ctx.lineTo(this.zone.right, this.zone.top);
+            //this.ctx.lineTo(this.zone.right, this.zone.bottom);
+            //this.ctx.lineTo(this.zone.left, this.zone.bottom);
+            //this.ctx.closePath();
+            //this.ctx.stroke();
+            //this.ctx.restore();
             clearZone.call(this);
+
+            var simplyList = _recognize(this.zoneList);
+            drawLineList.call(this, simplyList);
+            console.log(simplyList);
         }
     }]);
     return Canvas;
@@ -196,6 +234,7 @@ var changeZone = function changeZone(position) {
     if (!this.zone.bottom || position.y < this.zone.bottom) {
         this.zone.bottom = position.y;
     }
+    addZoneList.call(this, position);
 };
 
 var clearZone = function clearZone() {
@@ -205,6 +244,40 @@ var clearZone = function clearZone() {
         top: null,
         bottom: null
     };
+};
+
+var addZoneList = function addZoneList(position) {
+    this.zoneList.push(position);
+};
+
+var drawLine = function drawLine(oX, oY) {
+    var _this2 = this;
+
+    var lastX = oX;
+    var lastY = oY;
+
+    return function (x, y) {
+        _this2.ctx.save();
+        _this2.ctx.beginPath();
+        _this2.ctx.strokeStyle = 'green';
+        _this2.ctx.lineWidth = 4;
+        _this2.ctx.lineJoin = 'round';
+        _this2.ctx.moveTo(lastX, lastY);
+        _this2.ctx.lineTo(x, y);
+        _this2.ctx.closePath();
+        _this2.ctx.stroke();
+        _this2.ctx.restore();
+        lastX = x;
+        lastY = y;
+    };
+};
+
+var drawLineList = function drawLineList(list) {
+    var draw = drawLine.call(this, list[0].x, list[0].y);
+
+    for (var i = 1; i < list.length; i++) {
+        draw(list[i].x, list[i].y);
+    }
 };
 
 var _init = (function (canvas, ctx, options) {
